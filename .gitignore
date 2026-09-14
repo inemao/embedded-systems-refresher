@@ -1,0 +1,15 @@
+# Pico SDK / CMake build output
+build/
+**/build/
+
+# Compiled binaries
+a.out
+firmware_sim
+*.elf
+*.uf2
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
