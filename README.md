@@ -123,6 +123,26 @@ Experiments demonstrated:
 * A temporary 14 ms consumer pause producing a 14-sample backlog while remaining within the 15-sample usable ring-buffer capacity
 * The distinction between buffering temporary latency and attempting to compensate for a sustained throughput deficit
 
+### Pico 2 ADC → USB → Python Streaming
+
+Built an end-to-end real-time data acquisition pipeline:
+
+- Samples the RP2350 ADC at 1 kHz using a repeating timer
+- Transfers samples from the timer callback through an atomic SPSC ring buffer
+- Assigns sequence numbers for end-to-end sample-loss detection
+- Reports firmware ring-buffer overflows separately
+- Streams structured records over USB CDC
+- Parses the stream in Python using PySerial
+- Maintains a rolling 2-second sample window
+- Visualizes the ADC waveform live with Matplotlib at ~20 FPS
+
+Serial protocol:
+
+- `S,<sequence>,<adc_value>` — ADC sample
+- `O,<overflow_count>` — firmware overflow diagnostic
+
+Validation with a potentiometer produced approximately 1,000 samples/s with zero detected sequence losses and zero Pico ring-buffer overflows.
+
 See [`week03-pico2-hardware`](week03-pico2-hardware/).
 
 ## Development Environment
@@ -138,6 +158,7 @@ Current hardware includes:
 * Push button
 * Potentiometer
 * Jumper wires
+* MAX30102 pulse oximeter / heart-rate sensor module
 
 USB CDC serial communication is used for host-side debugging and diagnostic output.
 
@@ -145,16 +166,17 @@ USB CDC serial communication is used for host-side debugging and diagnostic outp
 
 Future exercises will cover:
 
-* Efficient USB host communication
-* Streaming ADC data to Python
-* Real-time waveform visualization
-* ADC sampling and timing analysis
-* UART, SPI, and I2C
+* I2C communication with the MAX30102
+* MAX30102 register configuration and FIFO acquisition
+* Real-time red and infrared PPG waveform acquisition
+* PPG signal filtering and peak detection
+* Heart-rate estimation
+* SpO2 estimation
+* ADC and sensor sampling/timing analysis
+* UART and SPI
 * DMA
 * Modern C++
 * RTOS concepts
-* Physiological signal acquisition
-* Photoplethysmography (PPG)
 * Embedded signal processing
 * Embedded machine learning
 * Biomedical-device capstone project

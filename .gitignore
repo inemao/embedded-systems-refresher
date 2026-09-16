@@ -13,3 +13,7 @@ firmware_sim
 
 # VS Code
 .vscode/
+
+# Python virtual environments
+.venv/
+**/.venv/
