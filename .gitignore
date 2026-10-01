@@ -17,3 +17,19 @@ firmware_sim
 # Python virtual environments
 .venv/
 **/.venv/
+# Generated Pico/CMake build files
+**/build/
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# Python environments and cache
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Editor-specific local settings
+**/.vscode/
