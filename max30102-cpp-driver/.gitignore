@@ -1,0 +1,4 @@
+build
+!.vscode/*
+tests/test_max30102
+tests/*.o

@@ -1,0 +1,22 @@
+name: MAX30102 C++ Unit Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -S max30102-cpp-driver/tests -B max30102-cpp-driver/tests/build
+
+      - name: Build tests
+        run: cmake --build max30102-cpp-driver/tests/build
+
+      - name: Run tests
+        run: ctest --test-dir max30102-cpp-driver/tests/build --output-on-failure
