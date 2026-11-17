@@ -220,7 +220,47 @@ void test_available_write_pointer_failure() {
     assert(write.address == 0x57);
     assert(write.data.size() == 1);
     assert(write.data[0] == 0x04);
-    assert(write.nostop == true);       
+    assert(write.nostop == true);
+    
+    
+}
+
+void test_enable_ppg_ready_interrupt() {
+    FakeI2C fake;
+    MAX30102 sensor(fake, 0x57);
+
+    bool success = sensor.enable_ppg_ready_interrupt();
+
+    assert(success);
+    assert(fake.writes().size() == 1);
+    assert(fake.writes()[0].address == 0x57);
+    assert(fake.writes()[0].data ==
+           (std::vector<uint8_t>{0x02, 0x40}));
+    assert(fake.writes()[0].nostop == false);
+}
+
+void test_clear_interrupt_status() {
+    FakeI2C fake;
+    MAX30102 sensor(fake, 0x57);
+
+    // Simulate successful reads of both status registers.
+    fake.queue_read_data({0x40});
+    fake.queue_read_data({0x00});
+
+    bool success = sensor.clear_interrupt_status();
+
+    assert(success);
+}
+
+void test_clear_interrupt_status_read_failure() {
+    FakeI2C fake;
+    MAX30102 sensor(fake, 0x57);
+
+    fake.set_read_result(-1);
+
+    bool success = sensor.clear_interrupt_status();
+
+    assert(success == false);
 }
 
 int main() {
@@ -231,6 +271,9 @@ int main() {
     test_initialize_wrong_part_id();
     test_available_wraparound();
     test_available_write_pointer_failure();
+    test_enable_ppg_ready_interrupt();
+    test_clear_interrupt_status();
+    test_clear_interrupt_status_read_failure();
 
     std::cout << "All tests passed\n";
 }
