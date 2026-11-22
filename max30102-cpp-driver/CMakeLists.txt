@@ -33,6 +33,15 @@ project(max30102-cpp-driver C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+set(FREERTOS_KERNEL_PATH
+    "${CMAKE_CURRENT_LIST_DIR}/../external/FreeRTOS-Kernel"
+)
+
+add_subdirectory(
+    "${FREERTOS_KERNEL_PATH}/portable/ThirdParty/Community-Supported-Ports/GCC/RP2350_ARM_NTZ"
+    "${CMAKE_CURRENT_BINARY_DIR}/freertos"
+)
+
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(max30102-cpp-driver 
@@ -52,6 +61,9 @@ pico_enable_stdio_usb(max30102-cpp-driver 1)
 target_link_libraries(max30102-cpp-driver
     pico_stdlib
     hardware_i2c
+    hardware_clocks
+    FreeRTOS-Kernel
+    FreeRTOS-Kernel-Heap4
 )
 
 # Add the standard include files to the build

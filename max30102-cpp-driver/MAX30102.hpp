@@ -50,10 +50,15 @@ public:
     bool initialize(const Config& config);
     int available();
     bool read_sample(Sample& sample);
+    bool enable_ppg_ready_interrupt();
+    bool clear_interrupt_status();
 
 private:
 
     enum class Register : uint8_t {
+    INTR_STATUS_1 = 0x00,
+    INTR_STATUS_2 = 0x01,
+    INTR_ENABLE_1 = 0x02,
     FIFO_WR_PTR = 0x04,
     OVF_COUNTER = 0x05,
     FIFO_RD_PTR = 0x06,

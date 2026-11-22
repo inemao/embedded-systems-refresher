@@ -33,3 +33,6 @@ __pycache__/
 
 # Editor-specific local settings
 **/.vscode/
+
+# Additional Pico build configurations
+**/build-ns/

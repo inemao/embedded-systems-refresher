@@ -68,7 +68,7 @@ bool MAX30102::read_sample(Sample& sample){
     return true;
 }
 
- int MAX30102::available(){
+int MAX30102::available(){
     uint8_t write_ptr = 0;
     uint8_t read_ptr = 0;
 
@@ -76,4 +76,23 @@ bool MAX30102::read_sample(Sample& sample){
     if(read_register(Register::FIFO_RD_PTR, &read_ptr) != 1) return -1;
 
     return (write_ptr - read_ptr) & 0x1F;
- }
+}
+
+bool MAX30102::enable_ppg_ready_interrupt() {
+    return write_register(Register::INTR_ENABLE_1, 0x40) == 2;
+}
+
+bool MAX30102::clear_interrupt_status() {
+    uint8_t status1 = 0;
+    uint8_t status2 = 0;
+
+    if (read_register(Register::INTR_STATUS_1, &status1) != 1) {
+        return false;
+    }
+
+    if (read_register(Register::INTR_STATUS_2, &status2) != 1) {
+        return false;
+    }
+
+    return true;
+}

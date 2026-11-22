@@ -145,6 +145,81 @@ Validation with a potentiometer produced approximately 1,000 samples/s with zero
 
 See [`week03-pico2-hardware`](week03-pico2-hardware/).
 
+### MAX30102 — Interrupt-Driven Acquisition with FreeRTOS
+
+Implemented an interrupt-driven biomedical sensor acquisition pipeline using the Raspberry Pi Pico 2 (RP2350), MAX30102 optical sensor, and FreeRTOS V11.3.3.
+
+The project demonstrates register-level peripheral communication, interrupt-to-task synchronization, priority-based scheduling, and intertask communication.
+
+#### System Architecture
+
+```text
+MAX30102 optical sensor
+    |  Red / IR measurements at 100 Hz
+    |  Data-ready interrupt
+    v
+RP2350 GPIO interrupt handler
+    |  Direct-to-task notification
+    v
+FreeRTOS acquisition task (priority 2)
+    |  Read MAX30102 FIFO over I2C
+    |  Send samples using xQueueSend()
+    v
+FreeRTOS queue (32 samples)
+    |  xQueueReceive()
+    v
+FreeRTOS processing task (priority 1)
+    |  Consume samples
+    v
+PPG signal-processing pipeline (planned)
+```
+
+A separate heartbeat task runs at priority 1 to provide a basic indication that the scheduler continues operating.
+
+#### Implementation
+
+- Register-level I2C communication with the MAX30102.
+- Red and infrared optical measurements configured at 100 samples per second.
+- GPIO interrupt handler using FreeRTOS direct-to-task notifications.
+- Acquisition task that reads available samples from the sensor FIFO.
+- Producer–consumer communication through a 32-element FreeRTOS queue.
+- Nonblocking queue sends with overflow counting.
+- Blocking queue receives to avoid unnecessary polling.
+- Priority-based scheduling with acquisition at priority 2 and processing at priority 1.
+
+#### Engineering Design Decisions
+
+**Interrupt-driven acquisition:** The acquisition task blocks while waiting for sensor events, avoiding continuous polling when no new data is available.
+
+**Task priorities:** Acquisition has higher priority than processing to reduce the risk of sensor FIFO overflow. The processing task consumes buffered samples when scheduled.
+
+**Queue-based communication:** A FreeRTOS queue separates sensor acquisition from downstream processing. This allows signal-processing algorithms to evolve without tightly coupling them to the sensor driver.
+
+**Nonblocking queue sends:** Acquisition does not wait for the processing task when the queue is full. Instead, the implementation counts unsuccessful queue sends.
+
+#### Preliminary Validation
+
+Initial hardware testing demonstrated:
+
+- Sensor acquisition and processing operating at the configured 100 Hz sample rate.
+- Processing sample counts keeping pace with acquisition counts during observed test intervals.
+- A maximum observed producer-side queue depth of one sample under the tested workload.
+- Continued heartbeat output during acquisition and processing.
+- Task notification blocking intervals of approximately 6–7 RTOS ticks during diagnostic testing.
+
+These observations establish basic functional operation under the tested conditions. They do not yet establish worst-case scheduling latency, long-duration reliability, or guaranteed lossless acquisition.
+
+#### Next Steps
+
+- Implement EMA-based PPG baseline estimation and AC extraction.
+- Characterize filter behavior using Z-transforms and pole-zero analysis.
+- Implement and validate heart-rate estimation.
+- Compare EMA, Butterworth IIR, and FIR filtering approaches.
+- Measure execution time, memory usage, and scheduling latency.
+- Investigate PPG waveform morphology and physiological feature extraction.
+
+This is an educational engineering prototype, not a clinically validated pulse oximeter.
+
 ## Development Environment
 
 Development is performed on macOS using Visual Studio Code, Clang, CMake, the Raspberry Pi Pico SDK, and a Raspberry Pi Pico 2.
@@ -164,19 +239,36 @@ USB CDC serial communication is used for host-side debugging and diagnostic outp
 
 ## Roadmap
 
-Future exercises will cover:
+### Completed
 
-* I2C communication with the MAX30102
-* MAX30102 register configuration and FIFO acquisition
-* Real-time red and infrared PPG waveform acquisition
-* PPG signal filtering and peak detection
-* Heart-rate estimation
-* SpO2 estimation
-* ADC and sensor sampling/timing analysis
-* UART and SPI
-* DMA
-* Modern C++
-* RTOS concepts
-* Embedded signal processing
-* Embedded machine learning
-* Biomedical-device capstone project
+- C/C++ fundamentals and embedded programming exercises
+- GPIO interrupts, timers, and ADC acquisition
+- SPSC ring buffers and atomic synchronization
+- Pico 2 hardware integration
+- USB CDC streaming and Python visualization
+- Register-level I2C communication with the MAX30102
+- MAX30102 configuration and FIFO acquisition
+- Interrupt-driven Red/IR PPG acquisition
+- FreeRTOS integration on the RP2350
+- Direct-to-task notifications
+- Priority-based task scheduling
+- Producer-consumer communication using FreeRTOS queues
+
+### In Progress
+
+- PPG signal processing
+- EMA baseline estimation and AC extraction
+- Z-transform and pole-zero analysis
+- Heart-rate estimation
+
+### Planned
+
+- Butterworth IIR and FIR filter design
+- Filter performance comparisons
+- PPG waveform morphology analysis
+- Execution-time and scheduling-latency measurements
+- Stack and memory usage analysis
+- SpO2 estimation and calibration considerations
+- UART, SPI, and DMA
+- Embedded machine learning
+- Biomedical-device capstone project
